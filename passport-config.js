@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 
 
-function initialize(passport){
+function initialize(passport, getUserByEmail, getUserById){
     //done is that callback thing 
     //Called from login to authenticate user 
     const authenticateUser = async (email, password, done) => {
@@ -14,18 +14,21 @@ function initialize(passport){
 
         try {
             if (await bcrypt.compare(password, user.password)) {
-
+                return done(null, user);
             } else {
                 return done(null, false, {message: 'Password incorrect'} );
             }
         } catch (e) {
+
+            console.log("Still getting an error");
             return done(e);
         }
     }
-    passport.use(new LocalStrategy({usernameField: 'email'}), authenticateUser) ;
+    passport.use(new LocalStrategy({usernameField: 'email'}, authenticateUser));
     
-    passport.serializeUser((user,done) => {});
-    passport.deserializeUser((id,done) => {});
+    passport.serializeUser((user,done) => { done(null, user.id)});
+    passport.deserializeUser((id,done) => { 
+        done(null, getUserById(id))});
 
 }
 
